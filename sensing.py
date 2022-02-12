@@ -60,7 +60,8 @@ while True:
     moving_values = np.append(moving_values,current_val)
     moving_values = np.delete(moving_values,0)
     if plotting:
-        update(np.mean(moving_values))
+        #update(np.mean(moving_values))
+        update(current_val)
     
     new_time = time.time()
     if new_time - current_time >= 60:
@@ -69,7 +70,7 @@ while True:
                    "uid": uid}
         print(payload)
         result=collection.insert_one(payload)
-        
+        current_values = []
         current_time = time.time()
         
     
