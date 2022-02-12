@@ -24,6 +24,8 @@ class PowerDatabase():
 
     def fetch_data(self, data_from):
 
-        data = pd.DataFrame(list(self.test_collection.find()))
+        data = pd.DataFrame(list(self.test_collection.find(
+            {"timestamp": {"$gt": data_from.timestamp()}}
+        )))
         data["timestamp"] = pd.to_datetime(data["timestamp"], unit="s")
         return data
