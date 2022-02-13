@@ -11,7 +11,11 @@ import pandas as pd
 import twilio_notif 
 
 plotting = True
-uid = 'currentSensor1'
+
+with open('sensor_config.json', 'r') as f:
+    sensor_config = json.load(f)
+uid = sensor_config["uid"]
+#uid = 'currentSensor1'
 
 # initialize graph things
 if plotting:
