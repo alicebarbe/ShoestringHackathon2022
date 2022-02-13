@@ -7,6 +7,8 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 from pymongo import MongoClient
 import numpy as np
+import pandas as pd
+import twilio_notif 
 
 plotting = True
 uid = 'currentSensor1'
@@ -43,6 +45,13 @@ client = MongoClient(mongostr)
 db = client["shoestring"]
 collection = db["rawdata"]
 
+# find machine limits
+machinelimits = pd.DataFrame(list(db["machinelimits"].find({"uid": uid})))
+max_under_limit = int(machinelimits["maxunderlimit"])
+max_over_limit = int(machinelimits["maxoverlimit"])
+max_current = float(machinelimits["maxcurrent"])
+min_current = float(machinelimits["mincurrent"])
+
 i2c = busio.I2C(board.SCL, board.SDA)
 ina260=adafruit_ina260.INA260(i2c)
 
@@ -50,6 +59,9 @@ old_time = time.time()
 
 moving_values = np.zeros(20)
 current_values = []
+current_payload_list = []
+
+notif_flag = True # to avoid spamming users repeatedly with texts
 
 current_time = time.time()
 new_time = time.time()
@@ -65,14 +77,25 @@ while True:
     
     new_time = time.time()
     if new_time - current_time >= 60:
+        current_payload_list.append(np.mean(current_values))
         payload = {"timestamp": new_time,
                    "current": np.mean(current_values),
                    "uid": uid}
         print(payload)
         result=collection.insert_one(payload)
+        
+        under_limit_flag = all(np.array(current_payload_list)[-max_under_limit:] < min_current)
+        over_limit_flag = all(np.array(current_payload_list)[-max_over_limit:] > max_current)
+        if under_limit_flag and notif_flag:
+            twilio_notif.send_sms_to_all(f"{uid} is detecting downtime (under {min_current}mA for more than {max_under_limit}min).")
+            notif_flag = False
+        elif over_limit_flag and notif_flag:
+                twilio_notif.send_sms_to_all(f"{uid} is detecting excess consumption (over {max_current}mA for more than {max_over_limit}min).")
+                notif_flag = False
+        elif not under_limit_flag and not over_limit_flag:
+            notif_flag = True
+                
         current_values = []
         current_time = time.time()
         
-    
-    #update(ina260.current)
     time.sleep(0.05)

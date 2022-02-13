@@ -30,7 +30,9 @@ def send_sms(number, message):
         messaging_service_sid='MGc698655e624c15d697502e522479501b',
         body=message,
         to=number)
+    print(message.sid)
 
 def send_sms_to_all(message):
+    notifnumbers = pd.DataFrame(list(collection.find()))
     for index, row in notifnumbers.iterrows():
         send_sms(row['number'], f"Hi {row['name']}, {message}")
