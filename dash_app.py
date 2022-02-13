@@ -20,7 +20,7 @@ app = dash.Dash(
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
 )
 
-database = FakePowerDatabase()
+database = PowerDatabase()
 
 app.title = "Power Meter Dashboard"
 server = app.server
@@ -59,7 +59,7 @@ app.layout = html.Div(
                 dcc.Dropdown(options=[{"label": "Past 8 hours", "value": 8},
                                       {"label": "Past day", "value": 24},
                                       {"label": "Past 7 days", "value": 168},
-                                      {"label": "All time", "value": 999999999}],
+                                      {"label": "All time", "value": 99999}],
                              value = 8,
                              id="data-time-dropdown", style={"font-family":"sans-serif"}),
             ], style = {"flex-grow": "1", "background-color": "white", "border-radius": "5px", "padding": "16px"}),
